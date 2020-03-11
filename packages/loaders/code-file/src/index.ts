@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLSchema, parse, IntrospectionQuery, buildClientSchema, Kind, isSchema } from 'graphql';
-import { SchemaPointerSingle, DocumentPointerSingle, debugLog, SingleFileOptions, Source, UniversalLoader, asArray, isValidPath, parseGraphQLSDL, parseGraphQLJSON } from '@graphql-toolkit/common';
+import { SchemaPointerSingle, DocumentPointerSingle, debugLog, SingleFileOptions, Source, UniversalLoader, asArray, parseGraphQLSDL } from '@graphql-toolkit/common';
 import { GraphQLTagPluckOptions, gqlPluckFromCodeString } from '@graphql-toolkit/graphql-tag-pluck';
 
 function isSchemaText(obj: any): obj is string {
@@ -9,17 +9,17 @@ function isSchemaText(obj: any): obj is string {
 function isWrappedSchemaJson(obj: any): obj is { data: IntrospectionQuery } {
   const json = obj as { data: IntrospectionQuery };
 
-  return json.data !== undefined && json.data.__schema !== undefined;
+  return !!json?.data?.__schema;
 }
 
 function isSchemaJson(obj: any): obj is IntrospectionQuery {
   const json = obj as IntrospectionQuery;
 
-  return json !== undefined && json.__schema !== undefined;
+  return !!json?.__schema;
 }
 
 function isSchemaAst(obj: any): obj is DocumentNode {
-  return (obj as DocumentNode).kind !== undefined;
+  return !!obj?.kind;
 }
 
 function resolveExport(fileExport: GraphQLSchema | DocumentNode | string | { data: IntrospectionQuery } | IntrospectionQuery): GraphQLSchema | DocumentNode | null {
@@ -42,12 +42,10 @@ async function tryToLoadFromExport(rawFilePath: string): Promise<GraphQLSchema |
   let filePath = rawFilePath;
 
   try {
-    if (typeof require !== 'undefined' && require.cache) {
+    if (require?.cache) {
       filePath = require.resolve(filePath);
 
-      if (require.cache[filePath]) {
-        delete require.cache[filePath];
-      }
+      delete require.cache[filePath];
     }
 
     const rawExports = await import(filePath);
@@ -88,8 +86,8 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return 'code-file';
   }
 
-  async canLoad(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Promise<boolean> {
-    if (isValidPath(pointer) && options.path && options.fs) {
+  async canLoad(pointer: SchemaPointerSingle | DocumentPointerSingle, options?: CodeFileLoaderOptions): Promise<boolean> {
+    if (options?.path && options?.fs) {
       const { resolve, isAbsolute } = options.path;
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
@@ -122,7 +120,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     }
 
     if (!options.noRequire) {
-      if (options && options.require) {
+      if (options.require) {
         await Promise.all(asArray(options.require).map(m => import(m)));
       }
       let loaded = await tryToLoadFromExport(normalizedFilePath);

@@ -1,4 +1,4 @@
-import { keyBy, uniqBy, includes, reverse } from 'lodash';
+import { keyBy, uniqBy } from 'lodash';
 import { NamedTypeNode, DirectiveNode, DirectiveDefinitionNode, InputValueDefinitionNode, FieldDefinitionNode, DefinitionNode, TypeNode, Kind, SelectionNode } from 'graphql';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -21,7 +21,7 @@ export interface DefinitionMap {
 export function completeDefinitionPool(allDefinitions: DefinitionNode[], definitionPool: DefinitionNode[], newTypeDefinitions: DefinitionNode[]): DefinitionNode[] {
   const visitedDefinitions: { [name: string]: boolean } = {};
   while (newTypeDefinitions.length > 0) {
-    const schemaMap: DefinitionMap = keyBy(reverse(allDefinitions), d => ('name' in d ? d.name.value : 'schema'));
+    const schemaMap: DefinitionMap = keyBy(allDefinitions.reverse(), d => ('name' in d ? d.name.value : 'schema'));
     const newDefinition = newTypeDefinitions.shift();
     if (visitedDefinitions['name' in newDefinition ? newDefinition.name.value : 'schema']) {
       continue;
@@ -155,7 +155,7 @@ function collectNewTypeDefinitions(allDefinitions: DefinitionNode[], definitionP
     const nodeTypeName = nodeType.name.value;
 
     // collect missing argument input types
-    if (!definitionPool.some(d => 'name' in d && d.name.value === nodeTypeName) && !includes(builtinTypes, nodeTypeName)) {
+    if (!definitionPool.some(d => 'name' in d && d.name.value === nodeTypeName) && !builtinTypes.includes(nodeTypeName)) {
       const argTypeMatch = schemaMap[nodeTypeName];
       if (!argTypeMatch) {
         throw new Error(`Field ${node.name.value}: Couldn't find type ${nodeTypeName} in any of the schemas.`);
@@ -168,7 +168,7 @@ function collectNewTypeDefinitions(allDefinitions: DefinitionNode[], definitionP
 
   function collectDirective(directive: DirectiveNode) {
     const directiveName = directive.name.value;
-    if (!definitionPool.some(d => 'name' in d && d.name.value === directiveName) && !includes(builtinDirectives, directiveName)) {
+    if (!definitionPool.some(d => 'name' in d && d.name.value === directiveName) && !builtinDirectives.includes(directiveName)) {
       const directive = schemaMap[directiveName] as DirectiveDefinitionNode;
       if (!directive) {
         throw new Error(`Directive ${directiveName}: Couldn't find type ${directiveName} in any of the schemas.`);

@@ -28,7 +28,7 @@ export function createSchemaDefinition(
 
   if (fields.length) {
     return `schema { ${fields.join('\n')} }`;
-  } else if (config && config.force) {
+  } else if (config?.force) {
     return ` schema { query: Query } `;
   }
 

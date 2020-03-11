@@ -7,7 +7,7 @@ export type TypeAndFieldToDirectives = {
 };
 
 function isObjectTypeDefinitionOrExtension(obj: any): obj is ObjectTypeDefinitionNode | ObjectTypeDefinitionNode {
-  return obj && (obj.kind === 'ObjectTypeDefinition' || obj.kind === 'ObjectTypeExtension');
+  return obj?.kind === 'ObjectTypeDefinition' || obj?.kind === 'ObjectTypeExtension';
 }
 
 function parseDirectiveValue(value: ValueNode): any {
@@ -40,7 +40,7 @@ export function getFieldsWithDirectives(documentNode: DocumentNode): TypeAndFiel
     const typeName = type.name.value;
 
     for (const field of type.fields) {
-      if (field.directives && field.directives.length > 0) {
+      if (field.directives?.length > 0) {
         const fieldName = field.name.value;
         const key = `${typeName}.${fieldName}`;
         const directives: DirectiveUsage[] = field.directives.map(d => ({

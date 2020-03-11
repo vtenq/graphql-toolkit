@@ -12,7 +12,7 @@ export function extractFieldResolversFromObjectType(objectType: GraphQLObjectTyp
   const fieldResolvers: IFieldResolvers = {};
   const fieldMap = objectType.getFields();
   let selectedFieldNames: string[];
-  if (options && options.selectedTypeDefs) {
+  if (options?.selectedTypeDefs) {
     const invalidSchema = buildASTSchema(options.selectedTypeDefs);
     const typeMap = invalidSchema.getTypeMap();
     if (!(objectType.name in typeMap)) {

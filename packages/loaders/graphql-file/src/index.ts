@@ -1,4 +1,4 @@
-import { Source, UniversalLoader, DocumentPointerSingle, SchemaPointerSingle, isValidPath, parseGraphQLSDL, SingleFileOptions } from '@graphql-toolkit/common';
+import { Source, UniversalLoader, DocumentPointerSingle, SchemaPointerSingle, parseGraphQLSDL, SingleFileOptions } from '@graphql-toolkit/common';
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 
@@ -12,15 +12,13 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     return 'graphql-file';
   }
 
-  async canLoad(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<boolean> {
-    if (isValidPath(pointer) && options.path && options.fs) {
+  async canLoad(pointer: SchemaPointerSingle | DocumentPointerSingle, options?: GraphQLFileLoaderOptions): Promise<boolean> {
+    if (options?.path && options?.fs) {
       const { resolve, isAbsolute } = options.path;
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
         const { exists } = options.fs;
-        if (await new Promise(resolve => exists(normalizedFilePath, resolve))) {
-          return true;
-        }
+        return new Promise(resolve => exists(normalizedFilePath, resolve));
       }
     }
 
@@ -30,8 +28,11 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
     const { resolve, isAbsolute } = options.path;
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || process.cwd(), pointer);
-    const { readFileSync } = options.fs;
-    const rawSDL = readFileSync(normalizedFilePath, 'utf-8').trim();
+    const { readFile } = options.fs as any;
+    type ReadFileFn = typeof import('fs').readFileSync;
+    const readFile$ = (...args: Parameters<ReadFileFn>): Promise<ReturnType<ReadFileFn>> => new Promise((resolve, reject) => readFile(...args, (err: Error, data: Buffer | string) => (err ? reject(err) : resolve(data))));
+    const data = await readFile$(normalizedFilePath, 'utf-8');
+    const rawSDL = data?.toString()?.trim();
 
     return parseGraphQLSDL(pointer, rawSDL, options);
   }

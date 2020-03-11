@@ -41,7 +41,7 @@ async function getCustomLoaderByPath(path: string, cwd: string): Promise<any> {
     const requiredModule: any = importFrom(cwd, path);
 
     if (requiredModule) {
-      if (requiredModule.default && typeof requiredModule.default === 'function') {
+      if (typeof requiredModule?.default === 'function') {
         return requiredModule.default;
       } else if (typeof requiredModule === 'function') {
         return requiredModule;
@@ -118,19 +118,19 @@ export async function loadTypedefs<AdditionalConfig = {}>(pointerOrPointers: Unn
             throw new Error(`Failed to load custom loader: ${pointerOptions.loader}`);
           }
           const customLoaderResult = await loader(pointer, { ...options, ...pointerOptions }, normalizedPointerOptionsMap);
-          if (isSchema(customLoaderResult && customLoaderResult)) {
+          if (isSchema(customLoaderResult)) {
             found.push({
               location: pointer,
               schema: customLoaderResult,
             });
-          } else if (customLoaderResult && customLoaderResult.kind && customLoaderResult.kind === Kind.DOCUMENT) {
+          } else if (customLoaderResult?.kind === Kind.DOCUMENT) {
             const result = {
               document: customLoaderResult,
               location: pointer,
             };
             options.cache[pointer] = result;
             found.push(result);
-          } else if (customLoaderResult && customLoaderResult.document) {
+          } else if (customLoaderResult?.document) {
             const result = {
               location: pointer,
               ...customLoaderResult,

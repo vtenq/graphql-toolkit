@@ -89,7 +89,7 @@ export default (code: string, out, options: GraphQLTagPluckOptions = {}) => {
   modules = modules.map(mod => {
     return {
       name: mod.name,
-      identifier: mod.identifier && mod.identifier.toLowerCase(),
+      identifier: mod.identifier?.toLowerCase(),
     };
   });
   globalGqlIdentifierName = asArray(globalGqlIdentifierName).map(s => s.toLowerCase());
@@ -104,12 +104,12 @@ export default (code: string, out, options: GraphQLTagPluckOptions = {}) => {
   const gqlTemplateLiterals = [];
 
   // Check if package is registered
-  function isValidPackage(name) {
-    return modules.some(pkg => pkg.name && name && pkg.name.toLowerCase() === name.toLowerCase());
+  function isValidPackage(name: string) {
+    return modules.some(pkg => pkg.name?.toLowerCase() === name?.toLowerCase());
   }
 
   // Check if identifier is defined and imported from registered packages
-  function isValidIdentifier(name) {
+  function isValidIdentifier(name: string) {
     return definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName.includes(name);
   }
 

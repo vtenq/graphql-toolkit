@@ -1,6 +1,5 @@
-import { parse, isSchema } from 'graphql';
-import { UniversalLoader, fixSchemaAst, printSchemaWithDirectives, SingleFileOptions } from '@graphql-toolkit/common';
-import { Options } from 'graphql/utilities/schemaPrinter';
+import { isSchema } from 'graphql';
+import { UniversalLoader, SingleFileOptions, parseGraphQLSDL } from '@graphql-toolkit/common';
 
 // module:node/module#export
 function extractData(
@@ -43,19 +42,12 @@ export class ModuleLoader implements UniversalLoader {
       }
 
       if (isSchema(thing)) {
-        const schema = fixSchemaAst(thing, options);
         return {
-          schema,
-          get document() {
-            return parse(printSchemaWithDirectives(schema, options));
-          },
+          schema: thing,
           location: pointer,
         };
       } else if (typeof thing === 'string') {
-        return {
-          location: pointer,
-          document: parse(thing),
-        };
+        return parseGraphQLSDL(pointer, thing, options);
       } else if (typeof thing === 'object' && thing.kind === 'Document') {
         return {
           location: pointer,

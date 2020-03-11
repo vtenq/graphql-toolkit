@@ -2,7 +2,7 @@ import { debugLog } from '@graphql-toolkit/common';
 import { DocumentNode, DefinitionNode, Kind } from 'graphql';
 
 export const filterKind = (content: DocumentNode, filterKinds: null | string[]) => {
-  if (content && content.definitions && content.definitions.length && filterKinds && filterKinds.length > 0) {
+  if (content?.definitions?.length && filterKinds?.length > 0) {
     const invalidDefinitions: DefinitionNode[] = [];
     const validDefinitions: DefinitionNode[] = [];
     for (const definitionNode of content.definitions) {

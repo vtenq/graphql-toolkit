@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLObjectType, isObjectType } from 'graphql';
+import { GraphQLSchema, GraphQLObjectType, isObjectType, isIntrospectionType } from 'graphql';
 
 /**
  * Get all GraphQL types from schema without:
@@ -11,28 +11,9 @@ import { GraphQLSchema, GraphQLObjectType, isObjectType } from 'graphql';
 export function getUserTypesFromSchema(schema: GraphQLSchema): GraphQLObjectType[] {
   const allTypesMap = schema.getTypeMap();
 
-  // tslint:disable-next-line: no-unnecessary-local-variable
-  const modelTypes = Object.values(allTypesMap).filter((graphqlType: GraphQLObjectType) => {
-    if (isObjectType(graphqlType)) {
-      // Filter out private types
-      if (graphqlType.name.startsWith('__')) {
-        return false;
-      }
-      if (schema.getMutationType() && graphqlType.name === schema.getMutationType().name) {
-        return false;
-      }
-      if (schema.getQueryType() && graphqlType.name === schema.getQueryType().name) {
-        return false;
-      }
-      if (schema.getSubscriptionType() && graphqlType.name === schema.getSubscriptionType().name) {
-        return false;
-      }
+  const rootTypeNames = [schema.getQueryType(), schema.getMutationType(), schema.getSubscriptionType()].map(type => type?.name);
 
-      return true;
-    }
-
-    return false;
-  });
+  const modelTypes = Object.values(allTypesMap).filter(graphqlType => isObjectType(graphqlType) && !isIntrospectionType(graphqlType) && !rootTypeNames.includes(graphqlType.name));
 
   return modelTypes as GraphQLObjectType[];
 }

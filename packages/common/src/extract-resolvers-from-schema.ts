@@ -10,7 +10,7 @@ export function extractResolversFromSchema(schema: GraphQLSchema, options?: Extr
   const resolvers: IResolvers = {};
   const typeMap = schema.getTypeMap();
   let selectedTypeNames: string[];
-  if (options && options.selectedTypeDefs) {
+  if (options?.selectedTypeDefs) {
     const invalidSchema = buildASTSchema(options.selectedTypeDefs);
     selectedTypeNames = Object.keys(invalidSchema.getTypeMap());
   }
@@ -24,7 +24,7 @@ export function extractResolversFromSchema(schema: GraphQLSchema, options?: Extr
         resolvers[typeName] = typeDef as GraphQLScalarType;
       } else if (isObjectType(typeDef) || isInterfaceType(typeDef)) {
         resolvers[typeName] = extractFieldResolversFromObjectType(typeDef, {
-          selectedTypeDefs: options && options.selectedTypeDefs,
+          selectedTypeDefs: options?.selectedTypeDefs,
         });
       } else if (isEnumType(typeDef)) {
         const enumValues = typeDef.getValues();

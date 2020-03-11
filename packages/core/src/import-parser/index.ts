@@ -35,7 +35,7 @@ export function parseImportLine(importLine: string): RawModule {
     // Apply regex to import line
     const matches = importLine.match(IMPORT_FROM_REGEX);
 
-    if (matches && matches.length === 6 && matches[4]) {
+    if (matches?.length === 6 && matches[4]) {
       // Extract matches into named variables
       const [, wildcard, importsString, , from] = matches;
 
