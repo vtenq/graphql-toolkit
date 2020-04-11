@@ -32,11 +32,11 @@ function makeTypeDefs(loadedTypeDefs: Source[], options: Options) {
 }
 
 const importSchemaAsync = async (
-  schema: string, schemas?: Schemas, options?: Options
+  schema: string | string[], schemas?: Schemas, options?: Options
 ) => makeTypeDefs(await loadTypedefs(schema, makeOptions(schemas, options)), options);
 
 const importSchemaSync = (
-  schema: string, schemas?: Schemas, options?: Options
+  schema: string | string[], schemas?: Schemas, options?: Options
 ) => makeTypeDefs(loadTypedefsSync(schema, makeOptions(schemas, options)), options)
 
 runTests({
@@ -1074,5 +1074,68 @@ runTests({
   }
   `;
     expect(await importSchema('fixtures/multiple-imports/schema.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+  test('imports with multiple starting points should give the same result in different orders', async () => {
+    const expectedSDL = /* GraphQL */`\
+    type Query {
+      allUsers: [User!]
+      sayHello(name: String!): String! @resolver(name: "sayHello")
+    }
+
+    type User {
+      username: String! @unique
+    }
+
+    directive @resolver(name: String, paginated: Boolean! = false) on FIELD_DEFINITION
+
+    directive @unique(index: String) on FIELD_DEFINITION
+
+    directive @embedded on OBJECT
+
+    directive @collection(name: String!) on OBJECT
+
+    directive @index(name: String!) on FIELD_DEFINITION
+
+    directive @relation(name: String) on FIELD_DEFINITION
+
+    scalar Date
+
+    scalar Long
+
+    scalar Time
+  `;
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/base.gql',
+      'fixtures/multiple-startingpoints/User.gql',
+      'fixtures/multiple-startingpoints/Query.gql',
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/base.gql',
+      'fixtures/multiple-startingpoints/Query.gql',
+      'fixtures/multiple-startingpoints/User.gql'
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/User.gql',
+      'fixtures/multiple-startingpoints/Query.gql',
+      'fixtures/multiple-startingpoints/base.gql',
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/User.gql',
+      'fixtures/multiple-startingpoints/base.gql',
+      'fixtures/multiple-startingpoints/Query.gql',
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/Query.gql',
+      'fixtures/multiple-startingpoints/base.gql',
+      'fixtures/multiple-startingpoints/User.gql',
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/Query.gql',
+      'fixtures/multiple-startingpoints/User.gql',
+      'fixtures/multiple-startingpoints/base.gql',
+    ])).toBeSimilarGqlDoc(expectedSDL);
+    expect(await importSchema([
+      'fixtures/multiple-startingpoints/*.gql'
+    ])).toBeSimilarGqlDoc(expectedSDL);
   });
 })

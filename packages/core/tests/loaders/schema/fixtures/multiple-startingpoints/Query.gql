@@ -1,0 +1,6 @@
+# import User from "./User.gql"
+
+type Query {
+  allUsers: [User!]
+  sayHello(name: String!): String! @resolver(name: "sayHello")
+}
