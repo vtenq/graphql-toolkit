@@ -23,6 +23,7 @@ export class ApolloEngineLoader implements SchemaLoader {
         'apollo-client-name': 'Apollo Language Server',
         'apollo-client-reference-id': '146d29c0-912c-46d3-b686-920e52586be6',
         'apollo-client-version': '2.6.8',
+        ...options.headers
       },
       body: JSON.stringify({
         query: SCHEMA_QUERY,
